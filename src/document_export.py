@@ -1,30 +1,38 @@
 import streamlit as st
 from docx import Document
-from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.shared import OxmlElement, qn
-from reportlab.lib.pagesizes import letter, A4
+from docx import Document
+from io import BytesIO
+from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
-from io import BytesIO
-import pyperclip
+from reportlab.lib import colors  # Added import for color support
 from datetime import datetime
 import re
+import logging # New import for logging errors
+from typing import Optional, Tuple, List # New import for type hints
+from datetime import datetime
+import re
+import pyperclip  # Added import for pyperclip
+
+logging.basicConfig(level=logging.INFO)
 
 class DocumentExporter:
-    """Handle document export in various formats"""
+    """
+    Handles the export of processed content into various document formats like Word and PDF.
+    Focuses on content formatting and document generation, separating concerns from Streamlit UI.
+    """
     
     @staticmethod
-    def create_word_doc(content, title=None, author="WhatsApp Chat Converter"):
-        """Create a Word document from the content"""
+    def create_word_doc(content: str, title: Optional[str] = None, author: str = "WhatsApp Chat Converter") -> bytes:
+        """Create a Word document from the content."""
         try:
             doc = Document()
             
             # Set document title
             if title:
-                title_paragraph = doc.add_heading(title, 0)
+                title_paragraph = doc.add_heading(title, 0) # Level 0 is 'Title' style
                 title_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
             # Add metadata
@@ -32,47 +40,22 @@ class DocumentExporter:
             core_props.author = author
             core_props.created = datetime.now()
             
-            # Split content into paragraphs and headings
-            lines = content.split('\n')
-            current_paragraph = ""
+            # Process content into blocks
+            processed_blocks = DocumentExporter._process_content_lines(content)
             
-            for line in lines:
-                line = line.strip()
-                
-                if not line:
-                    if current_paragraph:
-                        doc.add_paragraph(current_paragraph)
-                        current_paragraph = ""
-                    continue
-                
-                # Detect headings (lines that are short and might be headings)
-                if DocumentExporter._is_heading(line):
-                    # Add previous paragraph if exists
-                    if current_paragraph:
-                        doc.add_paragraph(current_paragraph)
-                        current_paragraph = ""
-                    
-                    # Determine heading level
-                    if line.isupper() or line.startswith('#'):
-                        heading_level = 1
-                    elif any(word in line.lower() for word in ['introduction', 'conclusion', 'overview', 'summary']):
-                        heading_level = 1  
+            for block_type, block_text in processed_blocks:
+                if block_type == 'paragraph':
+                    doc.add_paragraph(block_text)
+                elif block_type == 'heading':
+                    heading_info = DocumentExporter._parse_heading(block_text)
+                    if heading_info:
+                        heading_level, clean_heading = heading_info
+                        # docx heading levels are 0 for title, 1 for Heading 1, 2 for Heading 2 etc.
+                        # So, if MD is #, level is 1. If MD is ##, level is 2.
+                        doc.add_heading(clean_heading, level=heading_level)
                     else:
-                        heading_level = 2
-                    
-                    # Clean heading text
-                    clean_heading = line.replace('#', '').strip()
-                    doc.add_heading(clean_heading, heading_level)
-                else:
-                    # Regular content
-                    if current_paragraph:
-                        current_paragraph += " " + line
-                    else:
-                        current_paragraph = line
-            
-            # Add final paragraph if exists
-            if current_paragraph:
-                doc.add_paragraph(current_paragraph)
+                        # Fallback if _is_heading returned true but _parse_heading failed (should not happen with strict _is_heading)
+                        doc.add_heading(block_text, level=2) # Default to Heading 2
             
             # Save to BytesIO
             doc_buffer = BytesIO()
@@ -82,11 +65,12 @@ class DocumentExporter:
             return doc_buffer.getvalue()
             
         except Exception as e:
-            raise Exception(f"Error creating Word document: {str(e)}")
+            logging.exception(f"Error creating Word document: {e}")
+            raise RuntimeError(f"Failed to create Word document: {e}. Please try again or check the content format.")
     
     @staticmethod
-    def create_pdf(content, title=None, author="WhatsApp Chat Converter"):
-        """Create a PDF document from the content"""
+    def create_pdf(content: str, title: Optional[str] = None, author: str = "WhatsApp Chat Converter") -> bytes:
+        """Create a PDF document from the content."""
         try:
             buffer = BytesIO()
             doc = SimpleDocTemplate(
@@ -98,30 +82,39 @@ class DocumentExporter:
                 bottomMargin=18
             )
             
-            # Get styles
+            # Get ReportLab's default styles
             styles = getSampleStyleSheet()
             
-            # Custom styles
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
+            # Custom styles for various heading levels and body
+            h1_style = ParagraphStyle(
+                'ArticleHeading1',
+                parent=styles['h1'], # Use reportlab's h1 as base
                 fontSize=18,
                 alignment=TA_CENTER,
-                spaceAfter=30,
-                textColor='#2E4053'
+                spaceAfter=24,
+                textColor=colors.HexColor('#2E4053') # Dark blue/grey
             )
             
-            heading_style = ParagraphStyle(
-                'CustomHeading',
-                parent=styles['Heading2'],
+            h2_style = ParagraphStyle(
+                'ArticleHeading2',
+                parent=styles['h2'], # Use reportlab's h2 as base
                 fontSize=14,
-                spaceBefore=20,
-                spaceAfter=12,
-                textColor='#34495E'
+                spaceBefore=16,
+                spaceAfter=8,
+                textColor=colors.HexColor('#34495E') # Slightly lighter blue/grey
+            )
+
+            h3_style = ParagraphStyle(
+                'ArticleHeading3',
+                parent=styles['h3'], # Use reportlab's h3 as base
+                fontSize=12,
+                spaceBefore=12,
+                spaceAfter=6,
+                textColor=colors.HexColor('#4A637F') # Even lighter blue/grey
             )
             
             body_style = ParagraphStyle(
-                'CustomBody',
+                'ArticleBody',
                 parent=styles['Normal'],
                 fontSize=11,
                 alignment=TA_JUSTIFY,
@@ -131,46 +124,39 @@ class DocumentExporter:
                 rightIndent=0
             )
             
-            # Build the document
-            story = []
+            story: List = []
             
-            # Add title if provided
+            # Add title if provided (will be treated as a main heading)
             if title:
-                story.append(Paragraph(title, title_style))
-                story.append(Spacer(1, 20))
+                story.append(Paragraph(title, h1_style))
+                story.append(Spacer(1, 12))
             
-            # Process content
-            lines = content.split('\n')
-            current_paragraph = ""
+            # Process content into blocks
+            processed_blocks = DocumentExporter._process_content_lines(content)
             
-            for line in lines:
-                line = line.strip()
-                
-                if not line:
-                    if current_paragraph:
-                        story.append(Paragraph(current_paragraph, body_style))
-                        current_paragraph = ""
-                    continue
-                
-                if DocumentExporter._is_heading(line):
-                    # Add previous paragraph if exists
-                    if current_paragraph:
-                        story.append(Paragraph(current_paragraph, body_style))
-                        current_paragraph = ""
-                    
-                    # Add heading
-                    clean_heading = line.replace('#', '').strip()
-                    story.append(Paragraph(clean_heading, heading_style))
-                else:
-                    # Accumulate paragraph content
-                    if current_paragraph:
-                        current_paragraph += " " + line
+            for block_type, block_text in processed_blocks:
+                if block_type == 'paragraph':
+                    story.append(Paragraph(block_text, body_style))
+                elif block_type == 'heading':
+                    heading_info = DocumentExporter._parse_heading(block_text)
+                    if heading_info:
+                        heading_level, clean_heading = heading_info
+                        if heading_level == 1:
+                            story.append(Paragraph(clean_heading, h1_style))
+                            story.append(Spacer(1, 12))
+                        elif heading_level == 2:
+                            story.append(Paragraph(clean_heading, h2_style))
+                            story.append(Spacer(1, 8))
+                        elif heading_level == 3:
+                            story.append(Paragraph(clean_heading, h3_style))
+                            story.append(Spacer(1, 6))
+                        else: # Fallback for higher levels or unexpected
+                            story.append(Paragraph(clean_heading, body_style))
+                            story.append(Spacer(1, 6))
                     else:
-                        current_paragraph = line
-            
-            # Add final paragraph if exists
-            if current_paragraph:
-                story.append(Paragraph(current_paragraph, body_style))
+                        # Fallback if _is_heading returned true but _parse_heading failed
+                        story.append(Paragraph(block_text, body_style))
+                        story.append(Spacer(1, 6))
             
             # Build PDF
             doc.build(story)
@@ -179,96 +165,81 @@ class DocumentExporter:
             return buffer.getvalue()
             
         except Exception as e:
-            raise Exception(f"Error creating PDF document: {str(e)}")
+            logging.exception(f"Error creating PDF document: {e}")
+            raise RuntimeError(f"Failed to create PDF document: {e}. Please try again or check the content format.")
+
+    @staticmethod
+    def _is_heading(line: str) -> bool:
+        """
+        Determine if a line should be treated as a heading based on Markdown syntax.
+        Returns True if it's a heading, False otherwise.
+        """
+        stripped_line = line.strip()
+        # Explicit Markdown heading markers as per prompt instructions
+        return stripped_line.startswith('# ') or \
+               stripped_line.startswith('## ') or \
+               stripped_line.startswith('### ')
+
+    @staticmethod
+    def _parse_heading(line: str) -> Optional[Tuple[int, str]]:
+        """
+        Parses a heading line and returns its level and cleaned text.
+        Returns (level, cleaned_text) or None if not a recognized heading format.
+        """
+        stripped_line = line.strip()
+        if stripped_line.startswith('# '):
+            return 1, stripped_line[2:].strip()
+        elif stripped_line.startswith('## '):
+            return 2, stripped_line[3:].strip()
+        elif stripped_line.startswith('### '):
+            return 3, stripped_line[4:].strip()
+        
+        return None
     
     @staticmethod
-    def copy_to_clipboard(content):
-        """Copy content to clipboard"""
-        try:
-            pyperclip.copy(content)
-            return True, "Content copied to clipboard successfully!"
-        except Exception as e:
-            return False, f"Failed to copy to clipboard: {str(e)}"
-    
+    def _process_content_lines(content: str) -> List[Tuple[str, str]]:
+        """
+        Processes content lines and categorizes them as 'paragraph' or 'heading'.
+        Returns a list of tuples: [('type', 'text'), ...]
+        """
+        lines = content.split('\n')
+        processed_blocks = []
+        current_paragraph_lines = []
+
+        def add_current_paragraph():
+
+            if current_paragraph_lines:
+                processed_blocks.append(('paragraph', " ".join(current_paragraph_lines)))
+                current_paragraph_lines.clear()
+
+        for line in lines:
+            line_stripped = line.strip()
+            
+            if not line_stripped: # Empty line, signifies paragraph break
+                add_current_paragraph()
+                continue
+            
+            if DocumentExporter._is_heading(line_stripped):
+                add_current_paragraph() # Add any accumulated paragraph before the heading
+                processed_blocks.append(('heading', line_stripped))
+            else:
+                # Accumulate paragraph content
+                current_paragraph_lines.append(line_stripped)
+        
+        add_current_paragraph() # Add any remaining paragraph
+        return processed_blocks
+
+
     @staticmethod
-    def _is_heading(line):
-        """Determine if a line should be treated as a heading"""
-        if not line or len(line) < 3:
-            return False
-        
-        # Check for explicit heading markers
-        if line.startswith('#') or line.startswith('##'):
-            return True
-        
-        # Check for common heading patterns
-        heading_indicators = [
-            'introduction', 'conclusion', 'overview', 'summary', 
-            'background', 'discussion', 'analysis', 'findings',
-            'key points', 'main ideas', 'important notes'
-        ]
-        
-        line_lower = line.lower()
-        for indicator in heading_indicators:
-            if indicator in line_lower:
-                return True
-        
-        # Check if line is short and might be a heading
-        if len(line) < 60 and ':' not in line and line.endswith(('.', ':', '!')):
-            return True
-        
-        # Check if line is all caps (but not too long)
-        if line.isupper() and len(line) < 80:
-            return True
-        
-        return False
-    
-    @staticmethod
-    def generate_filename(title=None, file_type="docx"):
+    def generate_filename(title: Optional[str] = None, file_type: str = "docx") -> str:
         """Generate a filename for download"""
         if title:
             # Clean title for filename
             clean_title = re.sub(r'[^\w\s-]', '', title)
             clean_title = re.sub(r'[-\s]+', '-', clean_title)
-            filename = f"{clean_title}.{file_type}"
+            filename = clean_title + "." + file_type
         else:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"converted_article_{timestamp}.{file_type}"
+            filename = "converted_article_" + timestamp + "." + file_type
         
         return filename
-    
-    @staticmethod
-    def get_download_button_html(content, filename, button_text, button_key):
-        """Generate HTML for download button (fallback method)"""
-        import base64
-        
-        if filename.endswith('.docx'):
-            mime_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        elif filename.endswith('.pdf'):
-            mime_type = "application/pdf"
-        else:
-            mime_type = "text/plain"
-        
-        b64_content = base64.b64encode(content).decode()
-        
-        download_link = f'''
-        <a href="data:{mime_type};base64,{b64_content}" 
-           download="{filename}" 
-           style="text-decoration: none;">
-            <button style="
-                background-color: #4CAF50;
-                border: none;
-                color: white;
-                padding: 8px 16px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 14px;
-                margin: 4px 2px;
-                cursor: pointer;
-                border-radius: 4px;
-            ">
-                {button_text}
-            </button>
-        </a>
-        '''
-        return download_link

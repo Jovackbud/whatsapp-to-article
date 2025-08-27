@@ -1,12 +1,29 @@
 import re
 from datetime import datetime
+from typing import List, Dict, Any, Optional
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class TextProcessor:
-    """Process and clean text for conversion"""
+    """
+    Provides static methods for cleaning, processing, and analyzing raw chat text.
+    Removes irrelevant elements like timestamps, system messages, and casual chat.
+    """
     
     @staticmethod
-    def clean_chat_text(raw_text):
-        """Clean WhatsApp chat text by removing timestamps and system messages"""
+    def clean_chat_text(raw_text: str) -> str:
+        """
+        Cleans WhatsApp chat text by removing timestamps, system messages,
+        and other non-content elements.
+        
+        Args:
+            raw_text: The raw chat transcript string.
+        
+        Returns:
+            The cleaned chat text.
+        """
         if not raw_text:
             return ""
         
@@ -58,46 +75,43 @@ class TextProcessor:
         return '\n'.join(cleaned_lines)
     
     @staticmethod
-    def remove_casual_elements(text):
-        """Remove casual chat elements like 'haha', 'ok', etc."""
+    def remove_casual_elements(text: str) -> str:
+        """
+        Removes casual chat elements (emojis, common slang, filler words)
+        that are not relevant for an article.
+        
+        Args:
+            text: The input text.
+        
+        Returns:
+            The text with casual elements removed.
+        """
         if not text:
             return ""
         
-        # Patterns for casual elements
+        # Combine all casual patterns into a single regex for efficiency
         casual_patterns = [
-            r'\bhaha+\b',
-            r'\blol+\b',
-            r'\blmao+\b',
-            r'\bomg+\b',
-            r'\bokay?\b',
-            r'\bok+\b(?!\w)',  # 'ok' but not part of another word
-            r'\byeah+\b',
-            r'\byep+\b',
-            r'\bnope+\b',
-            r'\bhmm+\b',
-            r'\buhm+\b',
-            r'\bum+\b(?!\w)',
-            r'\bah+\b(?!\w)',
-            r'\boh+\b(?!\w)',
-            r'😂+',
-            r'😄+',
-            r'😊+',
-            r'👍+',
-            r'👌+',
+            r'\b(haha+|lol+|lmao+|omg+|okay?|ok\b|yeah+|yep+|nope+|hmm+|uhm+|um\b|ah\b|oh\b)\b', # Words
+            r'[😂😄😊👍👌]+', # Emojis
+            # Add any other common single-occurrence casual elements that might remain
         ]
         
-        for pattern in casual_patterns:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        # Compile into a single regex pattern
+        combined_pattern = re.compile('|'.join(casual_patterns), re.IGNORECASE)
         
-        # Clean up extra whitespace
-        text = re.sub(r'\s+', ' ', text)
-        text = re.sub(r'\n\s*\n', '\n', text)
+        text = combined_pattern.sub('', text)
         
+        # Clean up extra whitespace, including multiple newlines
+        text = re.sub(r'\s+', ' ', text).strip() # Replace all whitespace with single space, then strip
+        text = re.sub(r'\n\s*\n', '\n\n', text) # Ensure consistent paragraph breaks
+        
+        logger.debug("Casual elements removed from text.")
         return text.strip()
     
     @staticmethod
-    def identify_speakers(text):
+    def identify_speakers(text: str) -> List[str]:
         """Extract potential speaker names from chat text"""
+        # This is a heuristic and might not catch all speaker patterns or misidentify some.
         if not text:
             return []
         
@@ -118,26 +132,29 @@ class TextProcessor:
         return sorted(list(speakers))
     
     @staticmethod
-    def prepare_for_conversion(text, main_speaker=None):
-        """Prepare text for LLM conversion"""
+    def prepare_for_conversion(text: str) -> str:
+        """
+        Prepares raw chat text for LLM conversion by applying cleaning and removal
+        of casual elements.
+
+        Args:
+            text: The raw chat text.
+
+        Returns:
+            The processed text ready for LLM conversion.
+        """
         if not text:
+            logger.debug("No text provided for prepare_for_conversion, returning empty string.")
             return ""
-        
-        # Clean the text
+
         cleaned = TextProcessor.clean_chat_text(text)
-        
-        # Remove casual elements
         processed = TextProcessor.remove_casual_elements(cleaned)
-        
-        # If main speaker is provided, highlight their contributions
-        if main_speaker and main_speaker.strip():
-            # This will be used in the prompt context
-            pass
-        
+
+        logger.info("Text prepared for LLM conversion.")
         return processed.strip()
     
     @staticmethod
-    def format_output(article_text):
+    def format_output(article_text: str) -> str:
         """Format the LLM output for better readability"""
         if not article_text:
             return ""
@@ -152,7 +169,7 @@ class TextProcessor:
         return formatted
     
     @staticmethod
-    def get_text_stats(text):
+    def get_text_stats(text: str) -> Dict[str, int]:
         """Get basic statistics about the text"""
         if not text:
             return {"words": 0, "characters": 0, "lines": 0}

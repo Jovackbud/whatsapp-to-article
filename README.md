@@ -65,6 +65,8 @@ whatsapp-to-article/
 │   ├── text_processor.py  # Text cleaning and preprocessing
 │   ├── llm_handler.py     # Gemini AI integration
 │   └── document_export.py # PDF, DOCX, and clipboard export
+├── prompts/
+│   └── conversion_prompt.txt # AI conversion prompt template
 ├── .streamlit/
 │   └── config.toml       # Streamlit configuration
 ├── requirements.txt      # Python dependencies
@@ -81,6 +83,24 @@ whatsapp-to-article/
 3. **Specify main speaker** (optional): Enter the name of the primary teacher/speaker
 4. **Convert**: Click "Convert to Article" and wait for processing
 5. **Export**: Download as PDF/DOCX or copy to clipboard for further editing
+
+## 🎨 Customizing the AI Prompt
+
+The AI conversion prompt is stored in `prompts/conversion_prompt.txt` for easy customization:
+
+1. **Edit the prompt file** to change how the AI processes your chats
+2. **Use placeholders**:
+   - `{main_speaker_instructions}` - Auto-generated speaker focus
+   - `{chat_text}` - The actual conversation content
+   - `{title_instruction}` - Title suggestions
+3. **Restart the app** to load your changes
+
+### Example Customizations
+
+- Add specific formatting requirements
+- Include domain-specific instructions
+- Change the tone or style
+- Add content filters or focus areas
 
 ## 🛠️ Configuration
 

@@ -1,7 +1,8 @@
 [server]
 maxUploadSize = 10
 enableStaticServing = false
-enableCORS = false
+enableCORS = true
+enableXsrfProtection = true
 
 [theme]
 base = "light"

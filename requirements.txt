@@ -1,11 +1,19 @@
-streamlit>=1.28.0
-langchain>=0.1.0
-langchain-google-genai>=1.0.0
-python-docx>=1.1.0
-PyPDF2>=3.0.0
-pdfplumber>=0.9.0
-reportlab>=4.0.0
-pyperclip>=1.8.0
-google-generativeai>=0.3.0
-python-dotenv>=1.0.0
-streamlit-extras>=0.3.0
+# Core Streamlit application
+streamlit==1.49.0 
+
+# LLM integration
+langchain==0.3.27 
+langchain-google-genai==2.0.10 
+google-generativeai==0.8.5 
+
+# Document processing
+python-docx==1.2.0 
+PyPDF2==3.0.1 
+pdfplumber==0.11.7 
+reportlab==4.4.3 
+
+# Environment variables
+python-dotenv==1.1.1 
+
+# Utilities (optional but good practice for type hinting with some libraries)
+typing_extensions==4.15.0 
