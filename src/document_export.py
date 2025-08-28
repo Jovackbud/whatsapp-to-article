@@ -1,20 +1,14 @@
-import streamlit as st
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx import Document
 from io import BytesIO
-from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors  # Added import for color support
-from datetime import datetime
+from reportlab.lib.enums import TA_JUSTIFY # This was already in place but I re-added for clarity here.
 import re
-import logging # New import for logging errors
-from typing import Optional, Tuple, List # New import for type hints
 from datetime import datetime
-import re
-import pyperclip  # Added import for pyperclip
+import logging
+from typing import Optional, Tuple, List
 
 logging.basicConfig(level=logging.INFO)
 
