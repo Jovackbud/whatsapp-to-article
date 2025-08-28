@@ -11,7 +11,7 @@ class Config:
     Manages LLM parameters, file handling limits, export defaults, and Streamlit page settings.
     """
     # LLM Configuration (developer-configurable)
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
     GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY")
     
     # File handling settings

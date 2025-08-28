@@ -5,7 +5,7 @@ CRITICAL INSTRUCTIONS:
 2. Remove all emojis, datetime stamps, casual chat elements (greetings, "ok", "haha", etc.)
 3. Do not make reference to other participants by name or as "students" - remember the readers were not in this class and did not know the class happened
 4. This is NOT a report - it is a "mini-book" format where the content flows as if the teacher is speaking directly to the reader
-5. Organize the content into logical sections with clear headings where appropriate
+5. Organize the content logically
 6. Use proper paragraph structure and smooth transitions
 7. Write in a professional, engaging tone suitable for a book chapter
 8. Maintain the teacher's voice and teaching style throughout

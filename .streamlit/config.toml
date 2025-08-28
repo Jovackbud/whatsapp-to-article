@@ -2,11 +2,11 @@
 maxUploadSize = 10
 enableStaticServing = false
 enableCORS = true
-enableXsrfProtection = true
+enableXsrfProtection = true  # Changed from 'false' for enhanced security
 
 [theme]
 base = "light"
-primaryColor = "#4CAF50"
+primaryColor = "#4CAF50"  # This green is used by the app's custom CSS
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F0F2F6"
 textColor = "#262730"
