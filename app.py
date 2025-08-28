@@ -298,10 +298,11 @@ def display_input_section() -> Tuple[Any, str, str]:
     )
 
     # Clear Inputs Button
-    # st.markdown("<br>") # Removed extra spacing
     if st.button("🗑️ Clear All Inputs", help="Clear uploaded file, text, speaker name, and any generated article.", key="clear_inputs_button"):
         st.session_state.file_uploader_value = None 
-        # Note: Streamlit does not support programmatically clearing the file_uploader widget.
+        # Note: Streamlit's file_uploader widget doesn't reliably clear its visual display
+        # programmatically (i.e., you might still see the old filename in the UI).
+        # However, the logical state (st.session_state.file_uploader_value = None) is correctly reset.
         st.session_state.direct_text_input_value = ""
         st.session_state.main_speaker_input_value = ""
         st.session_state.article_title_input_value = ""
@@ -388,8 +389,6 @@ def display_processing_section(text_content: str, source_type: str, main_speaker
     with col3:
         st.metric("Paragraphs/Lines", f"{stats['lines']:,}")
     
-    # st.markdown("<br>") # Removed extra spacing
-
     st.markdown("##### Article Title (Optional)")
     article_title = st.text_input(
         "Suggest a title for the generated article:",
@@ -462,16 +461,18 @@ def convert_text_to_article(text_content: str, main_speaker: str, article_title:
                 return False
                 
     except RuntimeError as re:
-        st.error(f"Conversion failed: {re}")
+        st.error(f"Conversion failed: {re}. Please check your input and try again.")
         logger.error(f"Runtime error during conversion: {re}")
-        if st.checkbox("Show detailed error (for debugging)", key="debug_llm_error"):
-            st.code(traceback.format_exc())
+        if Config.SHOW_DEBUG_ERRORS: # Only show checkbox if debug mode is on
+            if st.checkbox("Show detailed error (for debugging)", key="debug_llm_error"):
+                st.code(traceback.format_exc())
         return False
     except Exception as e:
-        st.error(f"An unexpected error occurred during conversion: {e}")
+        st.error(f"An unexpected error occurred during conversion. Please try again or report the issue.")
         logger.exception(f"Unexpected error in convert_text_to_article: {e}")
-        if st.checkbox("Show detailed error (for debugging)", key="debug_conversion_error"):
-            st.code(traceback.format_exc())
+        if Config.SHOW_DEBUG_ERRORS: # Only show checkbox if debug mode is on
+            if st.checkbox("Show detailed error (for debugging)", key="debug_conversion_error"):
+                st.code(traceback.format_exc())
         return False
 
 def display_output_section(article_content: str, article_title: Optional[str], processing_time: float) -> None:
@@ -499,8 +500,6 @@ def display_output_section(article_content: str, article_title: Optional[str], p
         st.metric("Paragraphs", f"{output_stats['lines']:,}")
         st.metric("AI Time", f"{processing_time:.1f}s")
     
-    # st.markdown("<br>") # Removed extra spacing
-
     with st.expander("📖 **Click to view and copy your article**", expanded=True):
         st.text_area(
             "Generated Article Content:",
@@ -652,13 +651,14 @@ def main() -> None:
             st.text_area("Cleaned Input Preview", preview_text, height=300, disabled=True, key="input_preview_area_cleaned")
             st.markdown(f"<small>_Showing first {len(preview_text):,} characters of {len(cleaned_display_text):,} characters._</small>", unsafe_allow_html=True)
         
+        # Ensure source_type and main_speaker are strings for display_processing_section
         display_processing_section(text_content, source_type or "", main_speaker_from_session) 
         
     if st.session_state.article_content:
         display_output_section(
             st.session_state.article_content,
             st.session_state.article_title,
-            st.session_state.processing_time if st.session_state.processing_time is not None else 0.0
+            st.session_state.processing_time if st.session_state.processing_time is not None else 0.0 # Provide default for Optional float
         )
 
 if __name__ == "__main__":

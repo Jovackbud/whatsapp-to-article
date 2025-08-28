@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from typing import List, Optional, FrozenSet
+from typing import List, Optional, FrozenSet, Union
 
 # Load environment variables
 load_dotenv()
@@ -25,6 +25,8 @@ class Config:
     # Streamlit page config
     PAGE_TITLE: str = "WhatsApp to Article Converter"
     PAGE_ICON: str = "📝"
+    
+    SHOW_DEBUG_ERRORS: bool = os.getenv("SHOW_DEBUG_ERRORS", "False").lower() == "true"
     
     @classmethod
     def validate_config(cls) -> bool:
