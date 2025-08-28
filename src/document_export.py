@@ -4,7 +4,8 @@ from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_JUSTIFY # This was already in place but I re-added for clarity here.
+from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
+from reportlab.lib import colors
 import re
 from datetime import datetime
 import logging
