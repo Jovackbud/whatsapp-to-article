@@ -180,6 +180,7 @@ class DocumentHandler:
                 raise RuntimeError(message)
             
             # Get file content
+            uploaded_file.seek(0)
             file_content = uploaded_file.read()
             file_extension = uploaded_file.name.split('.')[-1].lower()
             
