@@ -16,4 +16,7 @@ reportlab==4.4.3
 python-dotenv==1.1.1 
 
 # Utilities (optional but good practice for type hinting with some libraries)
-typing_extensions==4.15.0 
+typing_extensions==4.15.0
+
+# Fix protobuf compatibility
+protobuf==4.25.3
