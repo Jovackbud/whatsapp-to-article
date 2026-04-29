@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ title }} - WhatsApp to Article{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="alert success">
+    <strong>Success:</strong> Article generated successfully.
+</div>
+
+<div class="actions">
+    {% if docx_uri %}
+    <a class="button-link download-word" href="{{ docx_uri }}" download="{{ docx_file }}">Download Word</a>
+    {% endif %}
+    {% if pdf_uri %}
+    <a class="button-link download-pdf" href="{{ pdf_uri }}" download="{{ pdf_file }}">Download PDF</a>
+    {% endif %}
+    <a class="button-link" href="/">Convert Another</a>
+</div>
+
+<article class="article-output">{{ article }}</article>
+{% endblock %}
+
+{% block extra_styles %}
+    .article-output {
+        white-space: pre-wrap;
+        font-family: Georgia, serif;
+        line-height: 1.8;
+        padding: 1.5rem;
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+    }
+{% endblock %}

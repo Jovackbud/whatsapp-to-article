@@ -1,5 +1,8 @@
-# Core Streamlit application
-streamlit==1.49.0 
+# Core Application
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+jinja2==3.1.3
+python-multipart==0.0.9
 
 # LLM integration
 langchain==0.3.27 
@@ -15,8 +18,6 @@ reportlab==4.4.3
 # Environment variables
 python-dotenv==1.1.1 
 
-# Utilities (optional but good practice for type hinting with some libraries)
+# Utilities
 typing_extensions==4.15.0
-
-# Fix protobuf compatibility
 protobuf==4.25.3

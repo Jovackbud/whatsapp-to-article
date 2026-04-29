@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}WhatsApp to Article{% endblock %}</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --accent-hover: #d0a7ff;
+            --surface-color: #1e1e1e;
+            --border-color: #333333;
+            --muted-color: #9a9a9a;
+            --success-color: #03dac6;
+            --error-color: #cf6679;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 860px;
+            width: 100%;
+            padding: 2rem;
+        }
+        h1, h2, h3 { color: var(--accent-color); }
+        a { color: var(--accent-color); }
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="file"], textarea {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button,
+        .button-link {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s, background-color 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        button:hover,
+        .button-link:hover { opacity: 0.85; }
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .alert.error { background-color: var(--error-color); color: #121212; }
+        .alert.success { background-color: var(--success-color); color: #121212; }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .download-word { background-color: var(--success-color); }
+        .download-pdf { background-color: var(--error-color); }
+        .loader {
+            display: none;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+            .actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

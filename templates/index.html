@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>WhatsApp to Article</h1>
+<p>Transform raw WhatsApp chat transcripts into polished articles. Lean. Fast. Private.</p>
+
+{% if error %}
+<div class="alert error">
+    <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="card">
+    <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data">
+        <h2>1. Provide Content</h2>
+        <div class="input-panel">
+            <textarea name="chat_text" id="chat_text" rows="5" placeholder="Paste your WhatsApp chat export here..."></textarea>
+            <div class="file-send-row">
+                <div>
+                    <label for="file">Or attach a file (TXT, DOCX, PDF):</label>
+                    <input type="file" name="file" id="file" accept=".txt,.docx,.pdf">
+                </div>
+                <button type="submit" id="send-btn" class="send-btn">Send</button>
+            </div>
+        </div>
+
+        <h2>2. Optional Details</h2>
+        <div class="optional-row">
+            <div>
+                <label for="speaker">Teacher/Speaker Name:</label>
+                <input type="text" name="speaker" id="speaker" placeholder="e.g., Prof. Anya">
+            </div>
+            <div>
+                <label for="title">Article Title:</label>
+                <input type="text" name="title" id="title" placeholder="Suggest a title...">
+            </div>
+        </div>
+
+        <button type="submit" id="submit-btn">Generate Article</button>
+        <div id="loader" class="loader"></div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_styles %}
+    .input-panel {
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-color);
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .input-panel textarea {
+        border: none;
+        margin-bottom: 0;
+        box-shadow: none;
+        resize: vertical;
+    }
+    .file-send-row {
+        border-top: 1px dashed var(--border-color);
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.75rem;
+        align-items: end;
+    }
+    .file-send-row label {
+        font-size: 0.85rem;
+        color: var(--muted-color);
+        margin-bottom: 0.25rem;
+        font-weight: normal;
+    }
+    .file-send-row input[type="file"] {
+        border: none;
+        padding: 0;
+        margin-bottom: 0;
+        background-color: transparent;
+    }
+    .optional-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .optional-row input[type="text"] {
+        margin-bottom: 0;
+    }
+    .send-btn {
+        min-width: 8.25rem;
+        width: auto;
+        padding: 0.7rem 1rem;
+        white-space: nowrap;
+    }
+    .send-btn:hover {
+        background-color: var(--accent-hover);
+        opacity: 1;
+    }
+    @media (max-width: 640px) {
+        .optional-row,
+        .file-send-row {
+            grid-template-columns: 1fr;
+        }
+        .send-btn {
+            width: 100%;
+        }
+    }
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('convert-form');
+    const chatText = document.getElementById('chat_text');
+    const loader = document.getElementById('loader');
+    const submitBtn = document.getElementById('submit-btn');
+    const sendBtn = document.getElementById('send-btn');
+
+    function showSubmittingState() {
+        loader.style.display = 'block';
+        submitBtn.style.display = 'none';
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+    }
+
+    form.addEventListener('submit', showSubmittingState);
+    chatText.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        }
+    });
+</script>
+{% endblock %}
