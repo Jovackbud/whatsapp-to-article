@@ -137,21 +137,25 @@ The application intelligently:
 
 ## 🔧 Deployment
 
-### Streamlit Community Cloud
+### Render
 
-1. Push your code to GitHub
-2. Connect your repository to [Streamlit Community Cloud](https://share.streamlit.io/)
-3. Add your API key in the Streamlit secrets management
-4. Deploy!
+Use Render's Python web service runtime with:
+
+```bash
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+Important notes:
+
+- Pin Python to `3.11.11` with the included `.python-version` or `PYTHON_VERSION` environment variable.
+- Do not use `--reload` in production on Render.
+- Add `GOOGLE_API_KEY` in the Render dashboard before deploying.
 
 ### Local Production
 
 ```bash
-# Set production environment
-export ENVIRONMENT=production
-
-# Run with optimized settings
-streamlit run app.py --server.port 8501 --server.address 0.0.0.0
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ## 🐛 Troubleshooting
