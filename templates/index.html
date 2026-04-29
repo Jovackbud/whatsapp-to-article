@@ -10,11 +10,13 @@
 </div>
 {% endif %}
 
+<div id="client-error" class="alert error" style="display: none;"></div>
+
 <div class="card">
     <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data">
         <h2>1. Provide Content</h2>
         <div class="input-panel">
-            <textarea name="chat_text" id="chat_text" rows="5" placeholder="Paste your WhatsApp chat export here..."></textarea>
+            <textarea name="chat_text" id="chat_text" rows="5" placeholder="Paste your WhatsApp chat export here...">{{ chat_text or "" }}</textarea>
             <div class="file-send-row">
                 <div>
                     <label for="file">Or attach a file (TXT, DOCX, PDF):</label>
@@ -28,11 +30,11 @@
         <div class="optional-row">
             <div>
                 <label for="speaker">Teacher/Speaker Name:</label>
-                <input type="text" name="speaker" id="speaker" placeholder="e.g., Prof. Anya">
+                <input type="text" name="speaker" id="speaker" placeholder="e.g., Prof. Anya" value="{{ speaker or '' }}">
             </div>
             <div>
                 <label for="title">Article Title:</label>
-                <input type="text" name="title" id="title" placeholder="Suggest a title...">
+                <input type="text" name="title" id="title" placeholder="Suggest a title..." value="{{ title or '' }}">
             </div>
         </div>
 
@@ -111,9 +113,25 @@
 <script>
     const form = document.getElementById('convert-form');
     const chatText = document.getElementById('chat_text');
+    const fileInput = document.getElementById('file');
     const loader = document.getElementById('loader');
     const submitBtn = document.getElementById('submit-btn');
     const sendBtn = document.getElementById('send-btn');
+    const clientError = document.getElementById('client-error');
+
+    function setClientError(message) {
+        clientError.textContent = message;
+        clientError.style.display = 'block';
+    }
+
+    function clearClientError() {
+        clientError.textContent = '';
+        clientError.style.display = 'none';
+    }
+
+    function hasUsableInput() {
+        return chatText.value.trim().length > 0 || fileInput.files.length > 0;
+    }
 
     function showSubmittingState() {
         loader.style.display = 'block';
@@ -122,10 +140,26 @@
         sendBtn.textContent = 'Sending...';
     }
 
-    form.addEventListener('submit', showSubmittingState);
+    form.addEventListener('submit', (event) => {
+        clearClientError();
+        if (!hasUsableInput()) {
+            event.preventDefault();
+            setClientError('Paste text or attach a file before sending.');
+            return;
+        }
+        showSubmittingState();
+    });
+
+    chatText.addEventListener('input', clearClientError);
+    fileInput.addEventListener('change', clearClientError);
+
     chatText.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
+            if (!hasUsableInput()) {
+                setClientError('Paste text or attach a file before sending.');
+                return;
+            }
             if (typeof form.requestSubmit === 'function') {
                 form.requestSubmit();
             } else {

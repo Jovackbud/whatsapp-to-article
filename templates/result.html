@@ -5,31 +5,113 @@
 {% block content %}
 <h1>{{ title }}</h1>
 
+{% if status_message %}
 <div class="alert success">
-    <strong>Success:</strong> Article generated successfully.
+    <strong>Success:</strong> {{ status_message }}
 </div>
+{% endif %}
 
-<div class="actions">
-    {% if docx_uri %}
-    <a class="button-link download-word" href="{{ docx_uri }}" download="{{ docx_file }}">Download Word</a>
-    {% endif %}
-    {% if pdf_uri %}
-    <a class="button-link download-pdf" href="{{ pdf_uri }}" download="{{ pdf_file }}">Download PDF</a>
-    {% endif %}
-    <a class="button-link" href="/">Convert Another</a>
+{% if error %}
+<div class="alert error">
+    <strong>Error:</strong> {{ error }}
 </div>
+{% endif %}
 
-<article class="article-output">{{ article }}</article>
+<form id="editor-form" action="/result/update" method="post">
+    <input type="hidden" name="title" value="{{ title }}">
+
+    <div class="actions">
+        {% if docx_uri %}
+        <a class="button-link download-word" href="{{ docx_uri }}" download="{{ docx_file }}">Download Word</a>
+        {% endif %}
+        {% if pdf_uri %}
+        <a class="button-link download-pdf" href="{{ pdf_uri }}" download="{{ pdf_file }}">Download PDF</a>
+        {% endif %}
+        <button type="button" id="edit-btn">Edit</button>
+        <button type="submit" id="save-btn" class="save-btn" hidden>Done</button>
+        <button type="button" id="cancel-btn" class="cancel-btn" hidden>Cancel</button>
+        <a class="button-link" href="/">Convert Another</a>
+    </div>
+
+    <label for="article-editor" class="editor-label">Article</label>
+    <textarea
+        id="article-editor"
+        name="article"
+        class="article-editor"
+        readonly
+        spellcheck="true"
+    >{{ article }}</textarea>
+</form>
 {% endblock %}
 
 {% block extra_styles %}
-    .article-output {
+    .editor-label {
+        margin-bottom: 0.75rem;
+    }
+    .article-editor {
         white-space: pre-wrap;
         font-family: Georgia, serif;
         line-height: 1.8;
+        min-height: 28rem;
         padding: 1.5rem;
         background-color: var(--surface-color);
         border: 1px solid var(--border-color);
         border-radius: 8px;
+        resize: vertical;
     }
+    .article-editor[readonly] {
+        cursor: default;
+    }
+    .article-editor.is-editing {
+        background-color: #181818;
+        border-color: var(--accent-color);
+        outline: none;
+    }
+    .save-btn {
+        background-color: var(--success-color);
+    }
+    .cancel-btn {
+        background-color: #5a5a5a;
+        color: #ffffff;
+    }
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const editorForm = document.getElementById('editor-form');
+    const articleEditor = document.getElementById('article-editor');
+    const editBtn = document.getElementById('edit-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const originalArticle = articleEditor.value;
+
+    function setEditingState(isEditing) {
+        articleEditor.readOnly = !isEditing;
+        articleEditor.classList.toggle('is-editing', isEditing);
+        editBtn.hidden = isEditing;
+        saveBtn.hidden = !isEditing;
+        cancelBtn.hidden = !isEditing;
+
+        if (isEditing) {
+            articleEditor.focus();
+            articleEditor.setSelectionRange(articleEditor.value.length, articleEditor.value.length);
+        }
+    }
+
+    editBtn.addEventListener('click', () => setEditingState(true));
+    cancelBtn.addEventListener('click', () => {
+        articleEditor.value = originalArticle;
+        setEditingState(false);
+    });
+
+    editorForm.addEventListener('submit', (event) => {
+        if (!articleEditor.value.trim()) {
+            event.preventDefault();
+            return;
+        }
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+    });
+</script>
 {% endblock %}

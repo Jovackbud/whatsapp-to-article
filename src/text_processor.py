@@ -99,12 +99,16 @@ class TextProcessor:
         # Compile into a single regex pattern
         combined_pattern = re.compile('|'.join(casual_patterns), re.IGNORECASE)
         
-        text = combined_pattern.sub('', text)
-        
-        # Clean up extra whitespace, including multiple newlines
-        text = re.sub(r'\s+', ' ', text).strip() # Replace all whitespace with single space, then strip
-        text = re.sub(r'\n\s*\n', '\n\n', text) # Ensure consistent paragraph breaks
-        
+        cleaned_lines = []
+        for line in text.splitlines():
+            normalized_line = combined_pattern.sub('', line)
+            normalized_line = re.sub(r'[ \t]+', ' ', normalized_line).strip()
+            if normalized_line:
+                cleaned_lines.append(normalized_line)
+
+        text = '\n'.join(cleaned_lines)
+        text = re.sub(r'\n{3,}', '\n\n', text).strip()
+
         logger.debug("Casual elements removed from text.")
         return text.strip()
     
