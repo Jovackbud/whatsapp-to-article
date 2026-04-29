@@ -32,8 +32,8 @@ class TextProcessor:
         
         # Common WhatsApp patterns to remove
         whatsapp_patterns = [
-            r'^\d{1,2}/\d{1,2}/\d{2,4},?\s\d{1,2}:\d{2}\s?[AP]?M?\s?-\s?',  # Timestamps
-            r'^\[\d{1,2}/\d{1,2}/\d{2,4},?\s\d{1,2}:\d{2}:\d{2}\]\s?',       # Square bracket timestamps
+
+
             r'^Messages and calls are end-to-end encrypted.*',                  # Encryption notice
             r'^This message was deleted\.?$',                                   # Deleted messages
             r'^You deleted this message\.?$',                                   # Deleted messages
