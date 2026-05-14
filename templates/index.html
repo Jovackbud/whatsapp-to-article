@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>WhatsApp to Article</h1>
-<p>Transform raw WhatsApp chat transcripts into polished articles. Lean. Fast. Private.</p>
+<div class="hero">
+    <h1>WhatsApp → Article</h1>
+    <p class="tagline">Paste a chat transcript. Get a polished article. That's it.</p>
+</div>
 
 {% if error %}
 <div class="alert error">
@@ -12,99 +14,208 @@
 
 <div id="client-error" class="alert error" style="display: none;"></div>
 
-<div class="card">
-    <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data">
-        <h2>1. Provide Content</h2>
-        <div class="input-panel">
-            <textarea name="chat_text" id="chat_text" rows="5" placeholder="Paste your WhatsApp chat export here...">{{ chat_text or "" }}</textarea>
-            <div class="file-send-row">
+<form id="convert-form" action="/convert" method="post" enctype="multipart/form-data">
+
+    <!-- Main input area -->
+    <div class="input-box">
+        <textarea name="chat_text" id="chat_text" rows="8" placeholder="Paste your WhatsApp chat export here...">{{ chat_text or "" }}</textarea>
+        <div class="input-footer">
+            <label for="file" class="file-label">
+                <span class="file-icon">📎</span>
+                <span id="file-name">Attach file</span>
+                <input type="file" name="file" id="file" accept=".txt,.docx,.pdf">
+            </label>
+            <span class="file-hint">TXT, DOCX, PDF</span>
+        </div>
+    </div>
+
+    <!-- Optional details — collapsible -->
+    <details class="options-panel" id="options-panel">
+        <summary class="options-toggle">
+            <span>⚙ Options</span>
+            <span class="options-hint">Speaker name, title</span>
+        </summary>
+        <div class="options-body">
+            <div class="options-grid">
                 <div>
-                    <label for="file">Or attach a file (TXT, DOCX, PDF):</label>
-                    <input type="file" name="file" id="file" accept=".txt,.docx,.pdf">
+                    <label for="speaker">Speaker</label>
+                    <input type="text" name="speaker" id="speaker" placeholder="e.g., Prof. Anya" value="{{ speaker or '' }}">
                 </div>
-                <button type="submit" id="send-btn" class="send-btn">Send</button>
+                <div>
+                    <label for="title">Title</label>
+                    <input type="text" name="title" id="title" placeholder="Suggest a title..." value="{{ title or '' }}">
+                </div>
             </div>
         </div>
+    </details>
 
-        <h2>2. Optional Details</h2>
-        <div class="optional-row">
-            <div>
-                <label for="speaker">Teacher/Speaker Name:</label>
-                <input type="text" name="speaker" id="speaker" placeholder="e.g., Prof. Anya" value="{{ speaker or '' }}">
-            </div>
-            <div>
-                <label for="title">Article Title:</label>
-                <input type="text" name="title" id="title" placeholder="Suggest a title..." value="{{ title or '' }}">
-            </div>
-        </div>
-
-        <button type="submit" id="submit-btn">Generate Article</button>
-        <div id="loader" class="loader"></div>
-    </form>
-</div>
+    <!-- Single action -->
+    <button type="submit" id="submit-btn" class="convert-btn">
+        <span id="btn-text">Convert</span>
+        <div id="loader" class="btn-loader"></div>
+    </button>
+</form>
 {% endblock %}
 
 {% block extra_styles %}
-    .input-panel {
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        background-color: var(--bg-color);
-        padding: 0.5rem;
-        margin-bottom: 1rem;
+    /* --- Hero --- */
+    .hero {
+        margin-bottom: 1.5rem;
     }
-    .input-panel textarea {
+    .hero h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+    .tagline {
+        color: var(--muted-color);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    /* --- Input box --- */
+    .input-box {
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+    .input-box:focus-within {
+        border-color: var(--accent-color);
+    }
+    .input-box textarea {
         border: none;
         margin-bottom: 0;
-        box-shadow: none;
+        background: transparent;
         resize: vertical;
+        min-height: 10rem;
     }
-    .file-send-row {
-        border-top: 1px dashed var(--border-color);
-        padding-top: 0.5rem;
-        margin-top: 0.5rem;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 0.75rem;
-        align-items: end;
+    .input-box textarea:focus {
+        outline: none;
     }
-    .file-send-row label {
-        font-size: 0.85rem;
+    .input-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* File input */
+    .file-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
         color: var(--muted-color);
-        margin-bottom: 0.25rem;
+        font-size: 0.85rem;
+        font-weight: normal;
+        margin-bottom: 0;
+        transition: color 0.15s;
+    }
+    .file-label:hover {
+        color: var(--text-color);
+    }
+    .file-label input[type="file"] {
+        display: none;
+    }
+    .file-icon {
+        font-size: 1rem;
+    }
+    .file-hint {
+        font-size: 0.75rem;
+        color: var(--muted-color);
+        opacity: 0.6;
+    }
+
+    /* --- Options panel --- */
+    .options-panel {
+        margin-bottom: 0.75rem;
+    }
+    .options-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: var(--muted-color);
+        font-size: 0.85rem;
+        padding: 0.5rem 0;
+        list-style: none;
+        user-select: none;
+        transition: color 0.15s;
+    }
+    .options-toggle::-webkit-details-marker {
+        display: none;
+    }
+    .options-toggle:hover {
+        color: var(--text-color);
+    }
+    .options-hint {
+        font-size: 0.75rem;
+        opacity: 0.5;
+    }
+    .options-body {
+        padding-top: 0.5rem;
+    }
+    .options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    .options-grid label {
+        font-size: 0.82rem;
+        color: var(--muted-color);
+        margin-bottom: 0.3rem;
         font-weight: normal;
     }
-    .file-send-row input[type="file"] {
-        border: none;
-        padding: 0;
+    .options-grid input[type="text"] {
         margin-bottom: 0;
-        background-color: transparent;
+        font-size: 0.9rem;
     }
-    .optional-row {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
-        margin-bottom: 1rem;
+
+    /* --- Convert button --- */
+    .convert-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.85rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: opacity 0.15s, transform 0.1s;
     }
-    .optional-row input[type="text"] {
-        margin-bottom: 0;
+    .convert-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
     }
-    .send-btn {
-        min-width: 8.25rem;
-        width: auto;
-        padding: 0.7rem 1rem;
-        white-space: nowrap;
+    .convert-btn:active {
+        transform: translateY(0);
     }
-    .send-btn:hover {
-        background-color: var(--accent-hover);
-        opacity: 1;
+
+    /* Inline loader */
+    .btn-loader {
+        display: none;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(0,0,0,0.2);
+        border-top-color: var(--bg-color);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
     }
+    .convert-btn.is-loading .btn-loader {
+        display: inline-block;
+    }
+    .convert-btn.is-loading {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
     @media (max-width: 640px) {
-        .optional-row,
-        .file-send-row {
+        .options-grid {
             grid-template-columns: 1fr;
-        }
-        .send-btn {
-            width: 100%;
         }
     }
 {% endblock %}
@@ -114,50 +225,54 @@
     const form = document.getElementById('convert-form');
     const chatText = document.getElementById('chat_text');
     const fileInput = document.getElementById('file');
-    const loader = document.getElementById('loader');
+    const fileName = document.getElementById('file-name');
     const submitBtn = document.getElementById('submit-btn');
-    const sendBtn = document.getElementById('send-btn');
+    const btnText = document.getElementById('btn-text');
     const clientError = document.getElementById('client-error');
 
-    function setClientError(message) {
-        clientError.textContent = message;
+    function setClientError(msg) {
+        clientError.textContent = msg;
         clientError.style.display = 'block';
     }
-
     function clearClientError() {
         clientError.textContent = '';
         clientError.style.display = 'none';
     }
-
-    function hasUsableInput() {
+    function hasInput() {
         return chatText.value.trim().length > 0 || fileInput.files.length > 0;
     }
 
-    function showSubmittingState() {
-        loader.style.display = 'block';
-        submitBtn.style.display = 'none';
-        sendBtn.disabled = true;
-        sendBtn.textContent = 'Sending...';
-    }
-
-    form.addEventListener('submit', (event) => {
+    // Show selected filename
+    fileInput.addEventListener('change', () => {
         clearClientError();
-        if (!hasUsableInput()) {
-            event.preventDefault();
-            setClientError('Paste text or attach a file before sending.');
-            return;
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = 'Attach file';
         }
-        showSubmittingState();
     });
 
     chatText.addEventListener('input', clearClientError);
-    fileInput.addEventListener('change', clearClientError);
 
-    chatText.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            if (!hasUsableInput()) {
-                setClientError('Paste text or attach a file before sending.');
+    // Submit
+    form.addEventListener('submit', (e) => {
+        clearClientError();
+        if (!hasInput()) {
+            e.preventDefault();
+            setClientError('Paste text or attach a file before converting.');
+            return;
+        }
+        btnText.textContent = 'Converting...';
+        submitBtn.classList.add('is-loading');
+        submitBtn.disabled = true;
+    });
+
+    // Enter to submit (Shift+Enter for newline)
+    chatText.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!hasInput()) {
+                setClientError('Paste text or attach a file before converting.');
                 return;
             }
             if (typeof form.requestSubmit === 'function') {
@@ -167,5 +282,10 @@
             }
         }
     });
+
+    // Auto-open options if values were preserved from error
+    {% if speaker or title %}
+    document.getElementById('options-panel').open = true;
+    {% endif %}
 </script>
 {% endblock %}
