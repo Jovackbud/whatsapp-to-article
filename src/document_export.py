@@ -7,11 +7,12 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 from reportlab.lib import colors
 import re
+from html import escape as _xml_escape
 from datetime import datetime
 import logging
 from typing import Optional, Tuple, List
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DocumentExporter:
     """
@@ -60,8 +61,8 @@ class DocumentExporter:
             return doc_buffer.getvalue()
             
         except Exception as e:
-            logging.exception(f"Error creating Word document: {e}")
-            raise RuntimeError(f"Failed to create Word document: {e}. Please try again or check the content format.")
+            logger.exception(f"Error creating Word document: {e}")
+            raise RuntimeError(f"Failed to create Word document: {e}")
     
     @staticmethod
     def create_pdf(content: str, title: Optional[str] = None, author: str = "WhatsApp Chat Converter") -> bytes:
@@ -123,7 +124,7 @@ class DocumentExporter:
             
             # Add title if provided (will be treated as a main heading)
             if title:
-                story.append(Paragraph(title, h1_style))
+                story.append(Paragraph(_xml_escape(title), h1_style))
                 story.append(Spacer(1, 12))
             
             # Process content into blocks
@@ -131,26 +132,26 @@ class DocumentExporter:
             
             for block_type, block_text in processed_blocks:
                 if block_type == 'paragraph':
-                    story.append(Paragraph(block_text, body_style))
+                    story.append(Paragraph(_xml_escape(block_text), body_style))
                 elif block_type == 'heading':
                     heading_info = DocumentExporter._parse_heading(block_text)
                     if heading_info:
                         heading_level, clean_heading = heading_info
                         if heading_level == 1:
-                            story.append(Paragraph(clean_heading, h1_style))
+                            story.append(Paragraph(_xml_escape(clean_heading), h1_style))
                             story.append(Spacer(1, 12))
                         elif heading_level == 2:
-                            story.append(Paragraph(clean_heading, h2_style))
+                            story.append(Paragraph(_xml_escape(clean_heading), h2_style))
                             story.append(Spacer(1, 8))
                         elif heading_level == 3:
-                            story.append(Paragraph(clean_heading, h3_style))
+                            story.append(Paragraph(_xml_escape(clean_heading), h3_style))
                             story.append(Spacer(1, 6))
                         else: # Fallback for higher levels or unexpected
-                            story.append(Paragraph(clean_heading, body_style))
+                            story.append(Paragraph(_xml_escape(clean_heading), body_style))
                             story.append(Spacer(1, 6))
                     else:
                         # Fallback if _is_heading returned true but _parse_heading failed
-                        story.append(Paragraph(block_text, body_style))
+                        story.append(Paragraph(_xml_escape(block_text), body_style))
                         story.append(Spacer(1, 6))
             
             # Build PDF
@@ -160,8 +161,8 @@ class DocumentExporter:
             return buffer.getvalue()
             
         except Exception as e:
-            logging.exception(f"Error creating PDF document: {e}")
-            raise RuntimeError(f"Failed to create PDF document: {e}. Please try again or check the content format.")
+            logger.exception(f"Error creating PDF document: {e}")
+            raise RuntimeError(f"Failed to create PDF document: {e}")
 
     @staticmethod
     def _is_heading(line: str) -> bool:

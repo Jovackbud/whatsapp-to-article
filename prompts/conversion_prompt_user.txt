@@ -1,0 +1,60 @@
+TASK:
+Transform the transcript into a cohesive, self-contained mini-book chapter written in the teacher's voice, as if speaking directly to the reader.
+
+RULES:
+
+Fidelity
+- Use ONLY the transcript. Add nothing.
+- Do NOT interpret, extend, summarize, or draw conclusions not explicitly stated.
+- Do NOT strengthen, soften, or generalize any claims.
+- Preserve all key ideas, emphasis, repetition, and doctrinal positions.
+
+Voice & Tone
+- Write in first person, addressing the reader as "you".
+- Match the teacher's tone, intensity, and speaking style exactly.
+- Use natural teaching expressions (e.g., "Let me explain...", "You must understand...").
+
+Language Simplicity
+- Use clear, simple, everyday words that anyone can understand.
+- Translate all shorthand, abbreviations (e.g., "bcos", "u"), and broken grammar into proper but simple English.
+- Do NOT use high-sounding, academic, poetic, or polished phrasing unless the teacher used them in the transcript.
+- Avoid phrases like "it is imperative...", "profound...", "a dimension of...", "paradigm", "nuanced", etc.
+- The writing should feel like the teacher is talking directly to you — warm, clear, and relatable.
+- Fix the grammar without making it sound rigid or overly professional.
+
+Cleanup
+- Remove all emojis, datetime stamps, sender names, greetings, fillers, and casual chat clutter (e.g., "ok", "haha").
+- Remove any reference to class, chat, group, or that a lesson happened.
+- Do not make reference to other participants by name or as "students" — the reader was not in the class.
+
+Questions & Contributions
+- Seamlessly weave the context of participants' questions into the main teaching flow.
+- Do NOT mention that questions were asked or that there were participants.
+- Transform questions into natural teaching moments.
+
+Structure
+- Organize logically for clarity with proper paragraph structure and smooth transitions.
+- Reorder ONLY to improve clarity — never to change meaning or emphasis.
+- Use Markdown-style section headings (e.g., "## Main Section", "### Sub-section") only where helpful.
+
+Repetition
+- Keep repetition that carries emphasis or reinforces the teacher's point.
+- Remove only redundancy that does not affect meaning or intensity.
+
+SELF-CHECK (before output):
+- No added or inferred ideas
+- No missing key points
+- No tone shift or softening
+- No high-sounding or artificial language
+- Emphasis preserved where meaningful
+- Language is simple and accessible
+Fix any issue before output.
+
+Title Instruction:
+{title_instruction}
+
+Additional Speaker Instructions:
+{main_speaker_instructions}
+
+Transcript:
+{chat_text}

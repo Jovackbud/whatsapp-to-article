@@ -84,7 +84,8 @@ def _build_result_context(request: Request, article: str, title: str, status_mes
         docx_b64 = base64.b64encode(docx_bytes).decode("utf-8")
         docx_uri = f"data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{docx_b64}"
         docx_file = DocumentExporter.generate_filename(title, "docx")
-    except Exception:
+    except Exception as e:
+        logger.exception(f"DOCX generation failed: {e}")
         docx_uri, docx_file = None, None
 
     try:
@@ -92,11 +93,11 @@ def _build_result_context(request: Request, article: str, title: str, status_mes
         pdf_b64 = base64.b64encode(pdf_bytes).decode("utf-8")
         pdf_uri = f"data:application/pdf;base64,{pdf_b64}"
         pdf_file = DocumentExporter.generate_filename(title, "pdf")
-    except Exception:
+    except Exception as e:
+        logger.exception(f"PDF generation failed: {e}")
         pdf_uri, pdf_file = None, None
 
-    return templates.TemplateResponse("result.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "result.html", {
         "article": formatted_article,
         "title": title,
         "docx_uri": docx_uri,
@@ -108,7 +109,7 @@ def _build_result_context(request: Request, article: str, title: str, status_mes
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 @app.post("/convert", response_class=HTMLResponse)
 async def convert(
@@ -137,8 +138,7 @@ async def convert(
         final_title = title or Config.DEFAULT_TITLE
         return _build_result_context(request, article, final_title, "Article generated successfully.")
     except Exception as e:
-        return templates.TemplateResponse("index.html", {
-            "request": request, 
+        return templates.TemplateResponse(request, "index.html", {
             "error": str(e),
             "chat_text": chat_text,
             "speaker": speaker,
@@ -159,8 +159,7 @@ async def update_result(
         final_title = title.strip() or Config.DEFAULT_TITLE
         return _build_result_context(request, article.strip(), final_title, "Article updated successfully.")
     except Exception as e:
-        return templates.TemplateResponse("result.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "result.html", {
             "article": article,
             "title": title or Config.DEFAULT_TITLE,
             "error": str(e),

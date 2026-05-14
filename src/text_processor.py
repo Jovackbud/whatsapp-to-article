@@ -1,9 +1,7 @@
 import re
-from datetime import datetime
 from typing import List, Dict, Any, Optional
 import logging
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class TextProcessor:
@@ -112,28 +110,6 @@ class TextProcessor:
         logger.debug("Casual elements removed from text.")
         return text.strip()
     
-    @staticmethod
-    def identify_speakers(text: str) -> List[str]:
-        """Extract potential speaker names from chat text"""
-        # This is a heuristic and might not catch all speaker patterns or misidentify some.
-        if not text:
-            return []
-        
-        # Pattern to match speaker names (name followed by colon)
-        speaker_pattern = r'^([^:\n]+?):\s*(.+)$'
-        speakers = set()
-        
-        for line in text.split('\n'):
-            match = re.match(speaker_pattern, line.strip())
-            if match:
-                speaker_name = match.group(1).strip()
-                # Filter out obvious non-names
-                if (len(speaker_name) < 50 and 
-                    not re.match(r'^\d', speaker_name) and  # Don't start with number
-                    speaker_name not in ['Media', 'Image', 'Video', 'Audio', 'Document']):
-                    speakers.add(speaker_name)
-        
-        return sorted(list(speakers))
     
     @staticmethod
     def prepare_for_conversion(text: str) -> str:

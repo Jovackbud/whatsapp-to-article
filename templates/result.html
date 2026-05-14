@@ -7,7 +7,7 @@
 
 {% if status_message %}
 <div class="alert success">
-    <strong>Success:</strong> {{ status_message }}
+    <strong>✓</strong> {{ status_message }}
 </div>
 {% endif %}
 
@@ -20,19 +20,6 @@
 <form id="editor-form" action="/result/update" method="post">
     <input type="hidden" name="title" value="{{ title }}">
 
-    <div class="actions">
-        {% if docx_uri %}
-        <a class="button-link download-word" href="{{ docx_uri }}" download="{{ docx_file }}">Download Word</a>
-        {% endif %}
-        {% if pdf_uri %}
-        <a class="button-link download-pdf" href="{{ pdf_uri }}" download="{{ pdf_file }}">Download PDF</a>
-        {% endif %}
-        <button type="button" id="edit-btn">Edit</button>
-        <button type="submit" id="save-btn" class="save-btn" hidden>Done</button>
-        <button type="button" id="cancel-btn" class="cancel-btn" hidden>Cancel</button>
-        <a class="button-link" href="/">Convert Another</a>
-    </div>
-
     <label for="article-editor" class="editor-label">Article</label>
     <textarea
         id="article-editor"
@@ -41,6 +28,49 @@
         readonly
         spellcheck="true"
     >{{ article }}</textarea>
+
+    <!-- Compact toolbar beneath the article -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <button type="button" id="copy-btn" class="tool-btn" title="Copy to clipboard">
+                <span class="tool-icon">📋</span> Copy
+            </button>
+
+            <div class="dropdown" id="download-dropdown">
+                <button type="button" class="tool-btn" id="download-toggle">
+                    <span class="tool-icon">⬇</span> Download <span class="caret">▾</span>
+                </button>
+                <div class="dropdown-menu" id="download-menu">
+                    {% if docx_uri %}
+                    <a href="{{ docx_uri }}" download="{{ docx_file }}" class="dropdown-item">📝 Word (.docx)</a>
+                    {% endif %}
+                    {% if pdf_uri %}
+                    <a href="{{ pdf_uri }}" download="{{ pdf_file }}" class="dropdown-item">📄 PDF (.pdf)</a>
+                    {% endif %}
+                    {% if not docx_uri and not pdf_uri %}
+                    <span class="dropdown-item disabled">No exports available</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="button" id="edit-btn" class="tool-btn" title="Edit article">
+                <span class="tool-icon">✏️</span> Edit
+            </button>
+            <button type="submit" id="save-btn" class="tool-btn save-btn" hidden title="Save edits">
+                <span class="tool-icon">✓</span> Done
+            </button>
+            <button type="button" id="cancel-btn" class="tool-btn cancel-btn" hidden title="Discard edits">
+                ✕ Cancel
+            </button>
+        </div>
+
+        <a href="/" class="tool-btn convert-another-btn" title="Start over">
+            ↻ New
+        </a>
+    </div>
+
+    <!-- Toast notification for copy -->
+    <div id="copy-toast" class="copy-toast">Copied to clipboard</div>
 </form>
 {% endblock %}
 
@@ -56,8 +86,9 @@
         padding: 1.5rem;
         background-color: var(--surface-color);
         border: 1px solid var(--border-color);
-        border-radius: 8px;
+        border-radius: 8px 8px 0 0;
         resize: vertical;
+        border-bottom: none;
     }
     .article-editor[readonly] {
         cursor: default;
@@ -67,12 +98,153 @@
         border-color: var(--accent-color);
         outline: none;
     }
+
+    /* --- Toolbar --- */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 0 0 8px 8px;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+    .tool-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: transparent;
+        color: var(--muted-color);
+        border: 1px solid transparent;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.82rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+        text-decoration: none;
+        width: auto;
+        font-weight: normal;
+    }
+    .tool-btn:hover {
+        color: var(--text-color);
+        background-color: rgba(255,255,255,0.06);
+        border-color: var(--border-color);
+        opacity: 1;
+    }
+    .tool-icon {
+        font-size: 0.9rem;
+    }
+    .caret {
+        font-size: 0.7rem;
+        margin-left: 0.1rem;
+    }
+
+    /* Save / Cancel */
     .save-btn {
-        background-color: var(--success-color);
+        color: var(--success-color);
+        border-color: var(--success-color);
+        background: transparent;
+    }
+    .save-btn:hover {
+        background-color: rgba(3, 218, 198, 0.12);
     }
     .cancel-btn {
-        background-color: #5a5a5a;
-        color: #ffffff;
+        color: var(--error-color);
+        background: transparent;
+    }
+    .cancel-btn:hover {
+        background-color: rgba(207, 102, 121, 0.12);
+    }
+
+    /* Convert Another */
+    .convert-another-btn {
+        color: var(--muted-color);
+        font-size: 0.8rem;
+    }
+
+    /* --- Dropdown --- */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 0;
+        background-color: #252525;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        min-width: 10rem;
+        z-index: 100;
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.4);
+        overflow: hidden;
+    }
+    .dropdown-menu.open {
+        display: block;
+    }
+    .dropdown-item {
+        display: block;
+        padding: 0.6rem 0.9rem;
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: background-color 0.12s;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+    .dropdown-item:hover {
+        background-color: rgba(255,255,255,0.08);
+    }
+    .dropdown-item.disabled {
+        color: var(--muted-color);
+        cursor: default;
+    }
+
+    /* --- Copy Toast --- */
+    .copy-toast {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(2rem);
+        background-color: var(--success-color);
+        color: #121212;
+        padding: 0.5rem 1.2rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        z-index: 200;
+    }
+    .copy-toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 640px) {
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .toolbar-left {
+            justify-content: center;
+        }
+        .convert-another-btn {
+            text-align: center;
+        }
     }
 {% endblock %}
 
@@ -83,15 +255,19 @@
     const editBtn = document.getElementById('edit-btn');
     const saveBtn = document.getElementById('save-btn');
     const cancelBtn = document.getElementById('cancel-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const copyToast = document.getElementById('copy-toast');
+    const downloadToggle = document.getElementById('download-toggle');
+    const downloadMenu = document.getElementById('download-menu');
     const originalArticle = articleEditor.value;
 
+    // --- Edit mode ---
     function setEditingState(isEditing) {
         articleEditor.readOnly = !isEditing;
         articleEditor.classList.toggle('is-editing', isEditing);
         editBtn.hidden = isEditing;
         saveBtn.hidden = !isEditing;
         cancelBtn.hidden = !isEditing;
-
         if (isEditing) {
             articleEditor.focus();
             articleEditor.setSelectionRange(articleEditor.value.length, articleEditor.value.length);
@@ -112,6 +288,37 @@
         saveBtn.textContent = 'Saving...';
         saveBtn.disabled = true;
         cancelBtn.disabled = true;
+    });
+
+    // --- Copy ---
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(articleEditor.value);
+        } catch {
+            // Fallback for non-HTTPS contexts
+            articleEditor.select();
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+        }
+        copyToast.classList.add('show');
+        setTimeout(() => copyToast.classList.remove('show'), 1800);
+    });
+
+    // --- Download dropdown ---
+    downloadToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        downloadMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+        downloadMenu.classList.remove('open');
+    });
+
+    downloadMenu.addEventListener('click', (e) => {
+        // Close dropdown after clicking an item (small delay so the download starts)
+        if (e.target.closest('.dropdown-item:not(.disabled)')) {
+            setTimeout(() => downloadMenu.classList.remove('open'), 150);
+        }
     });
 </script>
 {% endblock %}
