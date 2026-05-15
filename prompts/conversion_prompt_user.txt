@@ -2,7 +2,6 @@ TASK:
 Assess the transcript and produce the appropriate output:
 - If it is primarily TEACHING, produce a mini-book chapter.
 - If it is primarily PRAYER, produce a structured prayer guide.
-- If it is a MIX of both, produce a mini-book chapter with a clearly marked prayer section.
 
 CONTENT DETECTION:
 - Prayer content includes: declarations, decrees, supplications, prayer points, "In Jesus' name", "Lord...", "Father...", "I decree...", "Receive...", "We pray...", collective agreement phrases, and thanksgiving.
@@ -11,25 +10,31 @@ CONTENT DETECTION:
 
 ---
 
-FORMAT A — TEACHING ONLY:
+FORMAT A — TEACHING:
 
 Produce a cohesive, self-contained mini-book chapter written in the teacher's voice, as if speaking directly to the reader.
 
-FORMAT B — PRAYER ONLY:
+IMPORTANT: Do NOT append a prayer section unless the teacher led a sustained, substantive prayer segment — meaning multiple declarations, decrees, or prayer points spoken consecutively as focused prayer, not merely teaching about prayer or referencing scripture.
+
+The following do NOT count as substantive prayer and must be IGNORED entirely:
+- Opening or closing prayers (e.g., "Thank you Lord for your word", "Father, we are grateful", "Be thou exalted")
+- Short blessings, greetings to God, or thanksgiving for the session
+- One-off spiritual exclamations or benedictions
+- Teaching rhetoric that sounds spiritual (e.g., "God wants to bless you", "You need to trust the Lord")
+
+If no substantive prayer segment exists, output the chapter with NO prayer section at all.
+
+If the teacher did lead a sustained prayer segment within a teaching session, collect only those actual spoken prayers and append them as a concise list at the end of the chapter under the heading "## Prayers". List each prayer as a short, direct declaration (e.g., "I receive wisdom for my journey", "Every confusion over my life is broken in Jesus' name"). Keep this list tight — no elaboration, no sub-sections. Do NOT manufacture prayers from teaching content.
+
+FORMAT B — PRAYER:
 
 Produce a structured prayer guide:
 - Open with a brief introduction that captures the theme and context of the prayer session (written in the teacher's voice, 2-4 sentences max).
 - Organize the prayers into themed sections with clear headings (e.g., "## Prayer for Divine Instruction", "## Prayer for Career Breakthrough", "## Prayer Against Confusion").
-- Under each heading, list the prayer points as clear, direct statements the reader can pray. Write them as instructions: "Pray that...", "Ask God to...", "Declare that...".
+- Under each heading, list the main speaker's prayer points and declarations in their original declaration form. Preserve the authority and first-person voice: "I decree...", "I declare...", "Receive...", "Every spirit of...". Do NOT convert them into instructional phrasing like "Pray that..." or "Ask God to...".
 - Preserve the intensity, authority, and spiritual tone of the original declarations.
 - Include relevant scripture references where they appeared in the original.
 - End with a closing declaration or benediction if one was given.
-
-FORMAT C — MIXED (Teaching + Prayer):
-
-Produce the teaching portion as a mini-book chapter (Format A), then add a clearly separated section:
-## Prayer Points
-Follow Format B rules for this section. Use a heading like "## Prayer Points" or "## Prayers from This Session" to separate it from the teaching.
 
 ---
 
@@ -83,7 +88,7 @@ SELF-CHECK (before output):
 - No high-sounding or artificial language
 - Emphasis preserved where meaningful
 - Language is simple and accessible
-- Prayer points are actionable and organized by theme
+- Prayer declarations preserved in original speaker's voice
 Fix any issue before output.
 
 Title Instruction:
