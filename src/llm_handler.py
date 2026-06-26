@@ -1,8 +1,8 @@
 import os
 import logging
 from typing import Optional, Dict, Tuple, Any
-from google import genai
-from google.genai import types
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.schema import HumanMessage, SystemMessage
 from .config import Config
 
 logger = logging.getLogger(__name__)
@@ -10,26 +10,32 @@ logger = logging.getLogger(__name__)
 
 class GeminiHandler:
     """
-    Handles interactions with the Google Gemini LLM using the google-genai SDK directly.
-    No LangChain wrapper — minimal dependency surface, maximum control.
+    Handles interactions with the Google Gemini LLM using LangChain.
+    Bypasses REST API restrictions in cloud environments using gRPC.
     """
 
     def __init__(self):
-        """Initializes the Gemini handler by validating config and setting up the client."""
+        """Initializes the Gemini handler by validating config and setting up the model."""
         try:
             Config.validate_config()
-            self.client = genai.Client(api_key=Config.GOOGLE_API_KEY)
             self.model_name = Config.GEMINI_MODEL
             self.temperature = 0.7
             self.max_output_tokens = 8192
+            self.model = ChatGoogleGenerativeAI(
+                model=self.model_name,
+                google_api_key=Config.GOOGLE_API_KEY,
+                temperature=self.temperature,
+                max_output_tokens=self.max_output_tokens,
+                verbose=False,
+            )
             logger.info(f"Gemini client initialized for model '{self.model_name}'.")
         except ValueError as ve:
             logger.error(f"Configuration error: {ve}")
             raise
         except Exception as e:
-            logger.exception(f"Failed to initialize Gemini client: {e}")
+            logger.exception(f"Failed to initialize Gemini model: {e}")
             raise RuntimeError(
-                f"Failed to initialize Gemini client. "
+                f"Failed to initialize Gemini model. "
                 f"Please check your API key and configuration. Error: {e}"
             )
 
@@ -149,22 +155,19 @@ class GeminiHandler:
             user_prompt = self._prepare_user_prompt(chat_text, main_speaker, title)
             logger.debug("Prompts prepared for LLM.")
 
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    temperature=self.temperature,
-                    max_output_tokens=self.max_output_tokens,
-                ),
-            )
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt)
+            ]
 
-            if not response or not response.text:
+            response = self.model.invoke(messages)
+
+            if not response or not response.content:
                 logger.error("No content received from the LLM.")
                 raise RuntimeError("No article content received from the AI model. Please try again.")
 
             logger.info("Successfully converted chat text to article.")
-            return response.text.strip()
+            return response.content.strip()
 
         except ValueError as ve:
             logger.error(f"Validation error during conversion: {ve}")
@@ -176,15 +179,13 @@ class GeminiHandler:
     def test_connection(self) -> Tuple[bool, str]:
         """Tests the connection to the Gemini API."""
         try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents="Hello, respond with only: Connection successful",
-                config=types.GenerateContentConfig(max_output_tokens=32),
-            )
-            if response and response.text and "connection successful" in response.text.lower():
+            response = self.model.invoke([
+                HumanMessage(content="Hello, respond with only: Connection successful")
+            ])
+            if response and response.content and "connection successful" in response.content.lower():
                 logger.info("Gemini API connection test: SUCCESS")
-                return True, response.text
-            msg = response.text if response and response.text else "Empty response"
+                return True, response.content.strip()
+            msg = response.content if response and response.content else "Empty response"
             logger.warning(f"Gemini API connection test: Unexpected response: {msg}")
             return False, f"Unexpected response: {msg}"
         except Exception as e:
