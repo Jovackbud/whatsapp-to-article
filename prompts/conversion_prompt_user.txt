@@ -1,0 +1,101 @@
+TASK:
+Assess the transcript and produce the appropriate output:
+- If it is primarily TEACHING, produce a mini-book chapter.
+- If it is primarily PRAYER, produce a structured prayer guide.
+
+CONTENT DETECTION:
+- Prayer content includes: declarations, decrees, supplications, prayer points, "In Jesus' name", "Lord...", "Father...", "I decree...", "Receive...", "We pray...", collective agreement phrases, and thanksgiving.
+- Teaching content includes: explanations, instructions, lessons, stories, illustrations, practical advice, and scripture exposition.
+- Participant responses (e.g., "Amen", "I receive", personal prayers) serve as context but are NOT included verbatim.
+
+---
+
+FORMAT A — TEACHING:
+
+Produce a cohesive, self-contained mini-book chapter written in the teacher's voice, as if speaking directly to the reader.
+
+IMPORTANT: Do NOT append a prayer section unless the teacher led a sustained, substantive prayer segment — meaning multiple declarations, decrees, or prayer points spoken consecutively as focused prayer, not merely teaching about prayer or referencing scripture.
+
+The following do NOT count as substantive prayer and must be IGNORED entirely:
+- Opening or closing prayers (e.g., "Thank you Lord for your word", "Father, we are grateful", "Be thou exalted")
+- Short blessings, greetings to God, or thanksgiving for the session
+- One-off spiritual exclamations or benedictions
+- Teaching rhetoric that sounds spiritual (e.g., "God wants to bless you", "You need to trust the Lord")
+
+If no substantive prayer segment exists, output the chapter with NO prayer section at all.
+
+If the teacher did lead a sustained prayer segment within a teaching session, collect only those actual spoken prayers and append them as a concise list at the end of the chapter under the heading "## Prayers". List each prayer as a short, direct declaration (e.g., "I receive wisdom for my journey", "Every confusion over my life is broken in Jesus' name"). Keep this list tight — no elaboration, no sub-sections. Do NOT manufacture prayers from teaching content.
+
+FORMAT B — PRAYER:
+
+Produce a structured prayer guide:
+- Open with a brief introduction that captures the theme and context of the prayer session (written in the teacher's voice, 2-4 sentences max).
+- Organize the prayers into themed sections with clear headings (e.g., "## Prayer for Divine Instruction", "## Prayer for Career Breakthrough", "## Prayer Against Confusion").
+- Under each heading, list the main speaker's prayer points and declarations in their original declaration form. Preserve the authority and first-person voice: "I decree...", "I declare...", "Receive...", "Every spirit of...". Do NOT convert them into instructional phrasing like "Pray that..." or "Ask God to...".
+- Preserve the intensity, authority, and spiritual tone of the original declarations.
+- Include relevant scripture references where they appeared in the original.
+- End with a closing declaration or benediction if one was given.
+
+---
+
+RULES (apply to all formats):
+
+Fidelity
+- Use ONLY the transcript. Add nothing.
+- Do NOT interpret, extend, summarize, or draw conclusions not explicitly stated.
+- Do NOT strengthen, soften, or generalize any claims.
+- Preserve all key ideas, emphasis, repetition, and doctrinal positions.
+
+Voice & Tone
+- Write in first person, addressing the reader as "you".
+- Match the teacher's tone, intensity, and speaking style exactly.
+- Use natural teaching expressions (e.g., "Let me explain...", "You must understand...").
+- For prayer content, preserve the authority and fervour of the original declarations.
+
+Language Simplicity
+- Use clear, simple, everyday words that anyone can understand.
+- Translate all shorthand, abbreviations (e.g., "bcos", "u"), and broken grammar into proper but simple English.
+- Do NOT use high-sounding, academic, poetic, or polished phrasing unless the teacher used them in the transcript.
+- Avoid phrases like "it is imperative...", "profound...", "a dimension of...", "paradigm", "nuanced", etc.
+- The writing should feel like the teacher is talking directly to you — warm, clear, and relatable.
+- Fix the grammar without making it sound rigid or overly professional.
+
+Cleanup
+- Remove all emojis, datetime stamps, sender names, greetings, fillers, and casual chat clutter (e.g., "ok", "haha").
+- Remove any reference to class, chat, group, or that a lesson happened.
+- Do not make reference to other participants by name or as "students" — the reader was not in the class.
+
+Questions & Contributions
+- Seamlessly weave the context of participants' questions into the main teaching flow.
+- Do NOT mention that questions were asked or that there were participants.
+- Transform questions into natural teaching moments.
+- For prayer sessions, participant responses and personal prayers provide context but are NOT quoted directly.
+
+Structure
+- Organize logically for clarity with proper paragraph structure and smooth transitions.
+- Reorder ONLY to improve clarity — never to change meaning or emphasis.
+- Use Markdown-style section headings (e.g., "## Main Section", "### Sub-section") where helpful.
+
+Repetition
+- Keep repetition that carries emphasis or reinforces the teacher's point.
+- Remove only redundancy that does not affect meaning or intensity.
+- In prayer content, repeated declarations for emphasis should be preserved.
+
+SELF-CHECK (before output):
+- No added or inferred ideas
+- No missing key points or prayer points
+- No tone shift or softening
+- No high-sounding or artificial language
+- Emphasis preserved where meaningful
+- Language is simple and accessible
+- Prayer declarations preserved in original speaker's voice
+Fix any issue before output.
+
+Title Instruction:
+{title_instruction}
+
+Additional Speaker Instructions:
+{main_speaker_instructions}
+
+Transcript:
+{chat_text}
